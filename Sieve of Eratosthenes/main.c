@@ -80,7 +80,7 @@ void *psoe(void *arg_ptr)
         // Find a way to spin until max_sieved_sq is > i.
         ulong ival = itoval(args.start, i);
         ulong isq = ival * ival;
-        /* We can't be certain of isq's primality until max_sieved_sq is > it.*/
+        /* We can't be certain of i's primality until max_sieved_sq is > it.*/
         pthread_mutex_lock(&top_sq_lock);
         while (i > *(args.max_sieved_sq))
             pthread_cond_wait(&top_sq, &top_sq_lock);
@@ -88,8 +88,8 @@ void *psoe(void *arg_ptr)
         
         if (BITTEST(args.sieve, i)) /* Non prime, do nothing. */
             goto up_max;
-        
-        for (ulong j = isq; j < args.jmax; j+=ival) {
+        /* 2*ival because we're only storing odd numbers */
+        for (ulong j = isq; j < args.jmax; j += 2*ival) {
             /*
             * It's a very important part of our algorithm that we DON'T
             * need to lock here. Due to the way we've written our algorithm
@@ -101,7 +101,8 @@ void *psoe(void *arg_ptr)
             * sieve[j] while we're writing to it. This is why this algorithm
             * is more performant than other variants.
             */
-            BITSET(args.sieve, valtoi(args.start, j));
+            ulong _tmp = valtoi(args.start, j);
+            BITSET(args.sieve, _tmp);
         }
         
         /* Now we can update max_sieved_sq */
@@ -122,7 +123,8 @@ void *psoe(void *arg_ptr)
 }
 
 /* Wrapper around psoe, initializes data needed for parallel solving. */
-char *psoe_wrapper(ulong start, ulong max, ulong tcount)
+char *psoe_wrapper(ulong start, ulong max, ulong tcount, ulong skiplen, \
+                   ulong *skips)
 {
     /* Initialize our thread synchronization */
     pthread_mutex_init(&top_sq_lock, NULL);
@@ -164,6 +166,17 @@ char *psoe_wrapper(ulong start, ulong max, ulong tcount)
         free(sieve);
         return NULL;
     }
+    
+    /* 
+     * Cross out skipped primes. This will also become important for a segmented
+     * version of the sieve.
+    */
+    
+    for (ulong i = 0; i < skiplen; i++) {
+        for (ulong j = skips[0] * skips[0]; j < max; j += 2 * skips[0])
+            BITSET(sieve, valtoi(start, j));
+    }
+
     
     for (ulong i = 0; i < tcount; ++i ) {
         /* Nonchanging parameters */
@@ -227,14 +240,18 @@ int main(int argc, const char * argv[])
     
     ulong nCPU = sysconf( _SC_NPROCESSORS_ONLN );
     
+    /* Primes (not equal to 2) <= START. */
+#define SKIPLEN 2
+    ulong skips[SKIPLEN] = {3,5};
+    
     if ( max > ULONG_MAX ) { /* We'll overflow */
         printf("Sorry, too big.\n");
         return 0;
     }
     
-    printf("2, 3, ");
+    printf("2\n3\n");
     
-    char* sieve = psoe_wrapper(START, max, nCPU);
+    char* sieve = psoe_wrapper(START, max, nCPU, SKIPLEN, skips);
     if (!sieve) {
         return 1;
     }
