@@ -26,8 +26,9 @@
 
 /* Begin PBXFileReference section */
 		01D7C098197F5DCA00181689 /* Sieve of Eratosthenes */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Sieve of Eratosthenes"; sourceTree = BUILT_PRODUCTS_DIR; };
-		01D7C09B197F5DCA00181689 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		01D7C09B197F5DCA00181689 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = main.c; sourceTree = "<group>"; };
 		01D7C09D197F5DCA00181689 /* Sieve_of_Eratosthenes.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Sieve_of_Eratosthenes.1; sourceTree = "<group>"; };
+		01D7C0A5197F629500181689 /* main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = main.h; path = ../main.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +61,7 @@
 		01D7C09A197F5DCA00181689 /* Sieve of Eratosthenes */ = {
 			isa = PBXGroup;
 			children = (
+				01D7C0A5197F629500181689 /* main.h */,
 				01D7C09B197F5DCA00181689 /* main.c */,
 				01D7C09D197F5DCA00181689 /* Sieve_of_Eratosthenes.1 */,
 			);
