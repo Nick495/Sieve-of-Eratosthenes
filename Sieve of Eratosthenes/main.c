@@ -12,9 +12,9 @@ typedef unsigned long ulong;
 
 #define INT_BIT 8*sizeof(int)
 /* These defines are taken from the C-FAQ. http://c-faq.com/misc/bitsets.html */
-/* 
- * Adjusted for int to operate on word size, which was suggested to 
- * improve performance. 
+/*
+ * Adjusted for int to operate on word size, which was suggested to
+ * improve performance.
 */
 #define BITMASK(b) (1 << ((b) % CHAR_BIT))
 #define BITSLOT(b) ((b) / CHAR_BIT)
@@ -33,17 +33,17 @@ pthread_cond_t top_sq;
  * start is the starting offset for all threads, which needs to be changed based
  * on how many threads one is running. In our case, we're using 8 threads, so
  * we need a start value of 5. (The minimum start value is 3.) Note that the
- * program will NOT find primes under this start value, and that this start 
+ * program will NOT find primes under this start value, and that this start
  * value's square (i.e. 5^2 = 25) must be greater than all of the threads
- * first rows, in order to ensure correct execution. Assuming that one is 
+ * first rows, in order to ensure correct execution. Assuming that one is
  * storing all odd numbers, the starting value is given by the inequality
  * tcnt < start(start-1)/2 + 1 where start is the start value (an odd number)
- * and tcnt is the total number of threads on which the program is run. 
- * 
+ * and tcnt is the total number of threads on which the program is run.
+ *
  * tid is the thread id of the thread, which is also it's starting offset in
  * the array. tcount is the total number of threads being run, which could be
  * a global variable (it tells the thread how many positions to jump over in the
- * loop). imax is the maximum number of iterations of the i loop, and jmax the 
+ * loop). imax is the maximum number of iterations of the i loop, and jmax the
  * max the number for the jloop. int* sieve points to the bit array, which is
  * registered as an int pointer because operating on words is most efficient.
  * max_sieved_sq could also be a global variable, but in this case is a pointer
@@ -76,13 +76,13 @@ void *psoe(void *arg_ptr)
 {
     struct psoe_args args = *(struct psoe_args*)arg_ptr;
     
-    for (ulong i = args.tid; i < args.imax; i += args.tcount) {
+    for (ulong i = args.tid; i <= args.imax; i += args.tcount) {
         // Find a way to spin until max_sieved_sq is > i.
         ulong ival = itoval(args.start, i);
         ulong isq = ival * ival;
         /* We can't be certain of i's primality until max_sieved_sq is > it.*/
         pthread_mutex_lock(&top_sq_lock);
-        while (i > *(args.max_sieved_sq))
+        while (ival > *(args.max_sieved_sq))
             pthread_cond_wait(&top_sq, &top_sq_lock);
         pthread_mutex_unlock(&top_sq_lock);
         
@@ -142,7 +142,7 @@ char *psoe_wrapper(ulong start, ulong max, ulong tcount, ulong skiplen, \
      * both overcomplicated, and inefficent, since syncing threads requires a
      * nontrivial amount of work, which this method avoids in large part.
     */
-    ulong itop = valtoi(start, (ulong) sqrt(max) + 1);
+    ulong itop = valtoi(start, sqrt(max) + 1);
     ulong leftovers = itop % tcount;
     ulong max_sieved_sq = start * start;
     
@@ -256,7 +256,7 @@ int main(int argc, const char * argv[])
         return 1;
     }
     
-    for (ulong i = 0; i < valtoi(START, max); ++i) {
+    for (ulong i = 0; itoval(START,i) <= max; ++i) {
         if(!BITTEST(sieve, i))
             printf("%lu\n", itoval(START, i));
     }
